@@ -1,74 +1,66 @@
+import java.util.AbstractList;
+
 class Solution {
+    private List<List<String>> list;
+    private HashSet<Integer> col;
+    private HashSet<Integer> posDiag;
+    private HashSet<Integer> negDiag;
+
     public List<List<String>> solveNQueens(int n) {
-        List<List<String>> ans = new ArrayList<>();
-
-        char[][] board = new char[n][n];
-
-        // Fill board with '.'
-        for (int i = 0; i < n; i++) {
-            Arrays.fill(board[i], '.');
-        }
-
-        solve(0, board, ans, n);
-
-        return ans;
-    }
-
-    void solve(int row, char[][] board, List<List<String>> ans, int n) {
-
-        // All queens placed
-        if (row == n) {
-            List<String> temp = new ArrayList<>();
-
-            for (int i = 0; i < n; i++) {
-                temp.add(new String(board[i]));
+        return new AbstractList<List<String>>() {
+            @Override
+            public int size() {
+                init();
+                return list.size();
             }
 
-            ans.add(temp);
+            @Override
+            public List<String> get(int i) {
+                init();
+                return list.get(i);
+            }
+
+            private void init() {
+                if (list != null)
+                    return;
+                list = new ArrayList<>();
+                col = new HashSet<>();
+                posDiag = new HashSet<>();
+                negDiag = new HashSet<>();
+
+                char[][] board = new char[n][n];
+                for (char[] arr : board) {
+                    Arrays.fill(arr, '.');
+                }
+
+                solver(board, 0, n, 0);
+            }
+        };
+    }
+
+    private void solver(char[][] board, int r, int n, int m) {
+        if (n == m) {
+            List<String> boardList = new ArrayList<>();
+            for (char[] arr : board) {
+                boardList.add(new String(arr));
+            }
+            list.add(boardList);
             return;
         }
+        for (int c = 0; c < n; c++) {
+            if (col.contains(c) || posDiag.contains(r + c) || negDiag.contains(r - c))
+                continue;
 
-        // Try placing queen in every column
-        for (int col = 0; col < n; col++) {
+            board[r][c] = 'Q';
+            col.add(c);
+            posDiag.add(r + c);
+            negDiag.add(r - c);
+            solver(board, r + 1, n, m + 1);
 
-            if (isSafe(row, col, board, n)) {
-
-                board[row][col] = 'Q';
-
-                solve(row + 1, board, ans, n);
-
-                // Backtrack
-                board[row][col] = '.';
-            }
+            board[r][c] = '.';
+            col.remove(c);
+            posDiag.remove(r + c);
+            negDiag.remove(r - c);
         }
-    }
-
-    boolean isSafe(int row, int col, char[][] board, int n) {
-
-        // Check column
-        for (int i = 0; i < row; i++) {
-            if (board[i][col] == 'Q')
-                return false;
-        }
-
-        // Check upper-left diagonal
-        for (int i = row - 1, j = col - 1;
-             i >= 0 && j >= 0;
-             i--, j--) {
-
-            if (board[i][j] == 'Q')
-                return false;
-        }
-
-        // Check upper-right diagonal
-        for (int i = row - 1, j = col + 1;
-             i >= 0 && j < n;
-             i--, j++) {
-
-            if (board[i][j] == 'Q')
-                return false;
-        }
-
-        return true;
     }
 }
